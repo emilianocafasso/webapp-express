@@ -18,7 +18,16 @@ const index = (req, res) => {
 // SHOW
 const show = (req, res) => {
     console.log('Richiesta ricevuta: SHOW');
-    res.send('Movie')
+
+    // recupero l'id dall'URL
+    const id = req.params.id
+
+    const sql = `SELECT * FROM movies WHERE id = ${id}`
+
+    connection.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database query failed' })
+        res.json(results)
+    })
 }
 
 
