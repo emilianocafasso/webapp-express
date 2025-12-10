@@ -22,12 +22,26 @@ const show = (req, res) => {
     // recupero l'id dall'URL
     const id = req.params.id
 
-    const sql = 'SELECT * FROM movies WHERE id = ?'
+    const movieSql = 'SELECT * FROM movies WHERE id = ?'
 
-    connection.query(sql, [id], (err, results) => {
+    // prapato la query per le recensioni
+    const reviewsSql = 'SELECT name, vote, text FROM reviews WHERE movie_id = ?'
+
+    connection.query(movieSql, [id], (err, movieResults) => {
         if (err) return res.status(500).json({ error: 'Database query failed' })
-        if (results.length === 0) return res.status(404).json({ error: 'Movie not found' })
-        res.json(results)
+        if (movieResults.length === 0) return res.status(404).json({ error: 'Movie not found' })
+
+        // recupero il movie
+        const movie = movieResults[0]
+
+        // se la prima query è andata a buon fine, eseguo la seconda per le reviews
+        connection.query(reviewsSql, [id], (err, reviewsResults) => {
+            if (err) return res.status(500).json({ error: 'Database query failed' })
+
+            // aggiungo la recensione al movie
+            movie.reviews = reviewsResults
+            res.json(movie)
+        })
     })
 }
 
